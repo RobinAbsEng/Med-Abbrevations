@@ -50,10 +50,29 @@ button.btn:hover{background:#f0f0ee;}
 .save-badge span{color:#1D9E75;font-weight:600;}
 .filter-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1rem;}
 .filter-row label{font-size:13px;color:#666;}
+#gate{position:fixed;top:0;left:0;width:100%;height:100%;background:#f5f5f3;display:flex;align-items:center;justify-content:center;z-index:999;}
+.gate-box{background:#fff;border:1px solid #ddd;border-radius:12px;padding:2rem;max-width:340px;width:90%;text-align:center;}
+.gate-box h2{font-size:18px;font-weight:600;margin-bottom:.5rem;}
+.gate-box p{font-size:13px;color:#666;margin-bottom:1.5rem;line-height:1.5;}
+.gate-box input{width:100%;padding:10px 12px;font-size:14px;border:1px solid #ccc;border-radius:8px;margin-bottom:.75rem;text-align:center;letter-spacing:1px;}
+.gate-box input:focus{outline:none;border-color:#1D9E75;}
+.gate-box button{width:100%;padding:10px;font-size:14px;font-weight:600;background:#1D9E75;color:#fff;border:none;border-radius:8px;cursor:pointer;}
+.gate-box button:hover{background:#17856A;}
+.gate-error{font-size:12px;color:#993C1D;margin-top:.5rem;min-height:1rem;}
 </style>
 </head>
 <body>
-<div id="app">
+<div id="gate">
+  <div class="gate-box">
+    <h2>Medical Abbreviations</h2>
+    <p>Enter the access code included in your purchase confirmation email to continue.</p>
+    <input type="password" id="pwInput" placeholder="Access code" onkeydown="if(event.key==='Enter')checkPassword()" />
+    <button onclick="checkPassword()">Unlock</button>
+    <div class="gate-error" id="gateError"></div>
+  </div>
+</div>
+
+<div id="app" style="display:none">
   <div class="top-bar">
     <h2>Medical abbreviations — 150 cards</h2>
     <button class="btn" onclick="shuffleDeck()">Shuffle</button>
@@ -434,8 +453,37 @@ function resetProgress() {
   saveProgress(); buildDeck();
 }
 
-loadProgress();
-buildDeck();
+const ACCESS_CODE = "OETMedTerms";
+const AUTH_KEY = "ae_auth_v1";
+
+function checkPassword() {
+  const input = document.getElementById('pwInput').value;
+  if (input === ACCESS_CODE) {
+    try { localStorage.setItem(AUTH_KEY, '1'); } catch(e) {}
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = '';
+    loadProgress();
+    buildDeck();
+  } else {
+    document.getElementById('gateError').textContent = 'Incorrect code. Please check your confirmation email.';
+    document.getElementById('pwInput').value = '';
+  }
+}
+
+function checkAuth() {
+  try {
+    if (localStorage.getItem(AUTH_KEY) === '1') {
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('app').style.display = '';
+      loadProgress();
+      buildDeck();
+      return;
+    }
+  } catch(e) {}
+}
+
+checkAuth();
+
 </script>
 </body>
 </html>
